@@ -1,81 +1,141 @@
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
-import bcrypt from 'bcryptjs';
+import fs from 'fs/promises';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const DB_FILE = path.join(__dirname, 'database.json');
+
+class PureJsDatabase {
+  constructor() {
+    this.data = {
+      users: [],
+      students: [],
+      courses: [],
+      grades: [],
+      fees: []
+    };
+  }
+
+  async load() {
+    try {
+      const content = await fs.readFile(DB_FILE, 'utf-8');
+      this.data = JSON.parse(content);
+    } catch (e) {
+      await this.save();
+    }
+  }
+
+  async save() {
+    await fs.writeFile(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
+  }
+
+  async exec(sql) {
+    // Schema creation no-op for JSON DB
+  }
+
+  async get(query, params = []) {
+    await this.load();
+    const q = query.toLowerCase();
+
+    if (q.includes('from users')) {
+      if (q.includes('count(*)')) return { count: this.data.users.length };
+      if (q.includes('where email =')) return this.data.users.find(u => u.email === params[0]);
+    }
+    if (q.includes('from students')) {
+      if (q.includes('where id =')) return this.data.students.find(s => s.id === params[0]);
+    }
+    if (q.includes('from courses')) {
+      if (q.includes('where code =')) return this.data.courses.find(c => c.code === params[0]);
+    }
+    if (q.includes('from fees')) {
+      if (q.includes('where id =')) return this.data.fees.find(f => f.id === params[0]);
+      if (q.includes('where studentid =')) return this.data.fees.find(f => f.studentId === params[0]);
+    }
+    return null;
+  }
+
+  async all(query, params = []) {
+    await this.load();
+    const q = query.toLowerCase();
+
+    if (q.includes('from students')) return [...this.data.students];
+    if (q.includes('from courses')) return [...this.data.courses];
+    if (q.includes('from fees')) return [...this.data.fees];
+    if (q.includes('from grades')) {
+      if (q.includes('where studentid =')) return this.data.grades.filter(g => g.studentId === params[0]);
+      return [...this.data.grades];
+    }
+    return [];
+  }
+
+  async run(query, params = []) {
+    await this.load();
+    const q = query.toLowerCase();
+
+    if (q.includes('insert into users')) {
+      this.data.users.push({ user_id: params[0], email: params[1], password_hash: params[2], role: params[3] });
+    } else if (q.includes('insert into students')) {
+      const stuObj = Array.isArray(params[0]) ? {
+        id: params[0][0], name: params[0][1], email: params[0][2], department: params[0][3], year: params[0][4], semester: params[0][5], status: params[0][6], gpa: params[0][7], attendanceRate: params[0][8], feeStatus: params[0][9], phone: params[0][10], dob: params[0][11], address: params[0][12], avatar: params[0][13]
+      } : {
+        id: params[0], name: params[1], email: params[2], department: params[3], year: params[4], semester: params[5], status: params[6], gpa: params[7], attendanceRate: params[8], feeStatus: params[9], phone: params[10], dob: params[11], address: params[12], avatar: params[13]
+      };
+      
+      const existingIdx = this.data.students.findIndex(s => s.id === stuObj.id);
+      if (existingIdx !== -1) this.data.students[existingIdx] = stuObj;
+      else this.data.students.unshift(stuObj);
+    } else if (q.includes('update students set name =')) {
+      const idx = this.data.students.findIndex(s => s.id === params[10]);
+      if (idx !== -1) {
+        this.data.students[idx] = {
+          ...this.data.students[idx],
+          name: params[0], email: params[1], department: params[2], year: params[3], semester: params[4], status: params[5], gpa: params[6], attendanceRate: params[7], feeStatus: params[8], phone: params[9]
+        };
+      }
+    } else if (q.includes('update students set gpa =')) {
+      const idx = this.data.students.findIndex(s => s.id === params[1]);
+      if (idx !== -1) this.data.students[idx].gpa = parseFloat(params[0]);
+    } else if (q.includes('update students set feestatus =')) {
+      const idx = this.data.students.findIndex(s => s.id === params[1]);
+      if (idx !== -1) this.data.students[idx].feeStatus = params[0];
+    } else if (q.includes('delete from students where id =')) {
+      this.data.students = this.data.students.filter(s => s.id !== params[0]);
+    } else if (q.includes('insert into courses')) {
+      const courseObj = Array.isArray(params[0]) ? {
+        code: params[0][0], title: params[0][1], department: params[0][2], credits: params[0][3], instructor: params[0][4], enrolledCount: params[0][5], schedule: params[0][6]
+      } : {
+        code: params[0], title: params[1], department: params[2], credits: params[3], instructor: params[4], enrolledCount: 0, schedule: params[5]
+      };
+      this.data.courses.push(courseObj);
+    } else if (q.includes('insert into grades')) {
+      this.data.grades.unshift({
+        id: Date.now(), studentId: params[0], courseCode: params[1], courseName: params[2], score: params[3], grade: params[4], credits: params[5]
+      });
+    } else if (q.includes('insert into fees')) {
+      const feeObj = Array.isArray(params[0]) ? {
+        id: params[0][0], studentId: params[0][1], studentName: params[0][2], totalAmount: params[0][3], paidAmount: params[0][4], status: params[0][5], dueDate: params[0][6]
+      } : {
+        id: params[0], studentId: params[1], studentName: params[2], totalAmount: params[3], paidAmount: params[4], status: params[5], dueDate: params[6]
+      };
+      this.data.fees.push(feeObj);
+    } else if (q.includes('update fees set paidamount =')) {
+      const idx = this.data.fees.findIndex(f => f.id === params[2]);
+      if (idx !== -1) {
+        this.data.fees[idx].paidAmount = params[0];
+        this.data.fees[idx].status = params[1];
+      }
+    }
+
+    await this.save();
+  }
+}
 
 export async function initDb() {
-  const db = await open({
-    filename: path.join(__dirname, 'database.sqlite'),
-    driver: sqlite3.Database
-  });
+  const db = new PureJsDatabase();
+  await db.load();
 
-  // Enable Foreign Keys
-  await db.run('PRAGMA foreign_keys = ON;');
-
-  // Create Tables
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      user_id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      role TEXT NOT NULL CHECK (role IN ('ADMIN', 'TEACHER', 'STUDENT', 'PARENT'))
-    );
-
-    CREATE TABLE IF NOT EXISTS students (
-      id TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT UNIQUE NOT NULL,
-      department TEXT NOT NULL,
-      year TEXT NOT NULL,
-      semester TEXT NOT NULL,
-      status TEXT DEFAULT 'Active',
-      gpa REAL DEFAULT 3.5,
-      attendanceRate INTEGER DEFAULT 90,
-      feeStatus TEXT DEFAULT 'Paid',
-      phone TEXT,
-      dob TEXT,
-      address TEXT,
-      avatar TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS courses (
-      code TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      department TEXT NOT NULL,
-      credits INTEGER NOT NULL,
-      instructor TEXT NOT NULL,
-      enrolledCount INTEGER DEFAULT 0,
-      schedule TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS grades (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      studentId TEXT NOT NULL,
-      courseCode TEXT NOT NULL,
-      courseName TEXT NOT NULL,
-      score INTEGER NOT NULL,
-      grade TEXT NOT NULL,
-      credits INTEGER NOT NULL,
-      FOREIGN KEY (studentId) REFERENCES students(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS fees (
-      id TEXT PRIMARY KEY,
-      studentId TEXT NOT NULL,
-      studentName TEXT NOT NULL,
-      totalAmount REAL NOT NULL,
-      paidAmount REAL DEFAULT 0,
-      status TEXT DEFAULT 'Pending',
-      dueDate TEXT NOT NULL,
-      FOREIGN KEY (studentId) REFERENCES students(id) ON DELETE CASCADE
-    );
-  `);
-
-  // Seed Default Users & Initial Data if empty
   const userCount = await db.get('SELECT COUNT(*) as count FROM users');
   if (userCount.count === 0) {
     const adminHash = await bcrypt.hash('admin123', 10);
@@ -96,11 +156,7 @@ export async function initDb() {
     ];
 
     for (const stu of initialStudents) {
-      await db.run(
-        `INSERT INTO students (id, name, email, department, year, semester, status, gpa, attendanceRate, feeStatus, phone, dob, address, avatar) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        stu
-      );
+      await db.run('INSERT INTO students VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [stu]);
     }
 
     // Seed Courses
@@ -112,7 +168,7 @@ export async function initDb() {
     ];
 
     for (const c of initialCourses) {
-      await db.run('INSERT INTO courses VALUES (?, ?, ?, ?, ?, ?, ?)', c);
+      await db.run('INSERT INTO courses VALUES (?, ?, ?, ?, ?, ?, ?)', [c]);
     }
 
     // Seed Fees
@@ -124,7 +180,7 @@ export async function initDb() {
     ];
 
     for (const f of initialFees) {
-      await db.run('INSERT INTO fees VALUES (?, ?, ?, ?, ?, ?, ?)', f);
+      await db.run('INSERT INTO fees VALUES (?, ?, ?, ?, ?, ?, ?)', [f]);
     }
   }
 

@@ -1,0 +1,181 @@
+{
+  "users": [
+    {
+      "user_id": "U-001",
+      "email": "admin@university.edu",
+      "password_hash": "$2b$10$s0rbKNCx50usGwJclLduUej2vt.WrcDmKsOqCkylPjSMApw0SSjHC",
+      "role": "ADMIN"
+    },
+    {
+      "user_id": "U-002",
+      "email": "teacher@university.edu",
+      "password_hash": "$2b$10$3KdeBPnvrKZtqCOAmMlZq.7xrBDo8gYbp3fJjqMoftofKcoJP.e2S",
+      "role": "TEACHER"
+    },
+    {
+      "user_id": "U-003",
+      "email": "student@university.edu",
+      "password_hash": "$2b$10$ghaGCloZrakfm/qyKUm6W.UqZdGO6BX08HUXIoIMLyj5BNPws7hpa",
+      "role": "STUDENT"
+    }
+  ],
+  "students": [
+    {
+      "id": "STU-2026-005",
+      "name": "Emily Watson",
+      "email": "emily.w@university.edu",
+      "department": "Data Science",
+      "year": "1st Year",
+      "semester": "Semester 2",
+      "status": "Active",
+      "gpa": 4,
+      "attendanceRate": 99,
+      "feeStatus": "Paid",
+      "phone": "+1 (555) 432-1098",
+      "dob": "2005-01-30",
+      "address": "321 Cedar Lane",
+      "avatar": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "STU-2026-004",
+      "name": "David Kim",
+      "email": "david.k@university.edu",
+      "department": "Mechanical Eng",
+      "year": "3rd Year",
+      "semester": "Semester 6",
+      "status": "On Leave",
+      "gpa": 3.2,
+      "attendanceRate": 76,
+      "feeStatus": "Overdue",
+      "phone": "+1 (555) 654-3210",
+      "dob": "2003-09-08",
+      "address": "789 Maple Drive",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "STU-2026-003",
+      "name": "Sophia Rodriguez",
+      "email": "sophia.r@university.edu",
+      "department": "Electrical Eng",
+      "year": "2nd Year",
+      "semester": "Semester 4",
+      "status": "Active",
+      "gpa": 3.45,
+      "attendanceRate": 88,
+      "feeStatus": "Pending",
+      "phone": "+1 (555) 345-6789",
+      "dob": "2004-02-10",
+      "address": "456 Oak Avenue",
+      "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "STU-2026-002",
+      "name": "Benjamin Chen",
+      "email": "benjamin.c@university.edu",
+      "department": "Computer Science",
+      "year": "4th Year",
+      "semester": "Semester 8",
+      "status": "Active",
+      "gpa": 3.92,
+      "attendanceRate": 98,
+      "feeStatus": "Paid",
+      "phone": "+1 (555) 876-5432",
+      "dob": "2002-11-20",
+      "address": "100 Pine Street",
+      "avatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80"
+    },
+    {
+      "id": "STU-2026-001",
+      "name": "Alex Morgan",
+      "email": "alex.morgan@university.edu",
+      "department": "Computer Science",
+      "year": "3rd Year",
+      "semester": "Semester 6",
+      "status": "Active",
+      "gpa": 3.85,
+      "attendanceRate": 94,
+      "feeStatus": "Paid",
+      "phone": "+1 (555) 234-5678",
+      "dob": "2003-05-14",
+      "address": "742 Evergreen Terrace",
+      "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+    }
+  ],
+  "courses": [
+    {
+      "code": "CS301",
+      "title": "Database Management Systems",
+      "department": "Computer Science",
+      "credits": 4,
+      "instructor": "Dr. Robert Vance",
+      "enrolledCount": 42,
+      "schedule": "Mon/Wed 10:00 AM - 11:30 AM"
+    },
+    {
+      "code": "CS302",
+      "title": "Web Application Engineering",
+      "department": "Computer Science",
+      "credits": 3,
+      "instructor": "Prof. Sarah Jenkins",
+      "enrolledCount": 58,
+      "schedule": "Tue/Thu 02:00 PM - 03:30 PM"
+    },
+    {
+      "code": "DS201",
+      "title": "Machine Learning Fundamentals",
+      "department": "Data Science",
+      "credits": 4,
+      "instructor": "Dr. Alan Turing Jr.",
+      "enrolledCount": 35,
+      "schedule": "Mon/Fri 01:00 PM - 03:00 PM"
+    },
+    {
+      "code": "EE105",
+      "title": "Digital Electronics & Circuits",
+      "department": "Electrical Eng",
+      "credits": 4,
+      "instructor": "Prof. Michael Faraday",
+      "enrolledCount": 29,
+      "schedule": "Wed/Fri 09:00 AM - 10:30 AM"
+    }
+  ],
+  "grades": [],
+  "fees": [
+    {
+      "id": "FEE-801",
+      "studentId": "STU-2026-001",
+      "studentName": "Alex Morgan",
+      "totalAmount": 4500,
+      "paidAmount": 4500,
+      "status": "Paid",
+      "dueDate": "2026-08-15"
+    },
+    {
+      "id": "FEE-802",
+      "studentId": "STU-2026-002",
+      "studentName": "Benjamin Chen",
+      "totalAmount": 4500,
+      "paidAmount": 4500,
+      "status": "Paid",
+      "dueDate": "2026-08-15"
+    },
+    {
+      "id": "FEE-803",
+      "studentId": "STU-2026-003",
+      "studentName": "Sophia Rodriguez",
+      "totalAmount": 4500,
+      "paidAmount": 2500,
+      "status": "Pending",
+      "dueDate": "2026-09-30"
+    },
+    {
+      "id": "FEE-804",
+      "studentId": "STU-2026-004",
+      "studentName": "David Kim",
+      "totalAmount": 4500,
+      "paidAmount": 0,
+      "status": "Overdue",
+      "dueDate": "2026-07-01"
+    }
+  ]
+}
