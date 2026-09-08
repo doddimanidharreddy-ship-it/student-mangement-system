@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DB_FILE = path.join(__dirname, 'database.json');
+const REAL_DATA_FILE = path.join(__dirname, 'realData.json');
 
 class PureJsDatabase {
   constructor() {
@@ -78,10 +79,10 @@ class PureJsDatabase {
       this.data.users.push({ user_id: params[0], email: params[1], password_hash: params[2], role: params[3] });
     } else if (q.includes('insert into students')) {
       const stuObj = Array.isArray(params[0]) ? {
-        id: params[0][0], name: params[0][1], email: params[0][2], department: params[0][3], year: params[0][4], semester: params[0][5], status: params[0][6], gpa: params[0][7], attendanceRate: params[0][8], feeStatus: params[0][9], phone: params[0][10], dob: params[0][11], address: params[0][12], avatar: params[0][13]
-      } : {
-        id: params[0], name: params[1], email: params[2], department: params[3], year: params[4], semester: params[5], status: params[6], gpa: params[7], attendanceRate: params[8], feeStatus: params[9], phone: params[10], dob: params[11], address: params[12], avatar: params[13]
-      };
+        id: params[0][0], name: params[0][1], email: params[0][2], department: params[0][3], year: params[0][4], semester: params[0][5], status: params[0][6], gpa: params[0][7], attendanceRate: params[0][8], feeStatus: params[0][9], phone: params[0][10], dob: params[0][11], address: params[0][12], avatar: params[0][13], mentor: params[0][14] || 'Faculty Supervisor'
+      } : (typeof params[0] === 'object' ? params[0] : {
+        id: params[0], name: params[1], email: params[2], department: params[3], year: params[4], semester: params[5], status: params[6], gpa: params[7], attendanceRate: params[8], feeStatus: params[9], phone: params[10], dob: params[11], address: params[12], avatar: params[13], mentor: params[14] || 'Faculty Supervisor'
+      });
       
       const existingIdx = this.data.students.findIndex(s => s.id === stuObj.id);
       if (existingIdx !== -1) this.data.students[existingIdx] = stuObj;
@@ -136,6 +137,16 @@ export async function initDb() {
   const db = new PureJsDatabase();
   await db.load();
 
+  // Load Real Excel Data
+  try {
+    const rawReal = await fs.readFile(REAL_DATA_FILE, 'utf-8');
+    const realObj = JSON.parse(rawReal);
+    db.data.students = realObj.students;
+    await db.save();
+  } catch (err) {
+    console.warn('Real data file load notice:', err.message);
+  }
+
   const userCount = await db.get('SELECT COUNT(*) as count FROM users');
   if (userCount.count === 0) {
     const adminHash = await bcrypt.hash('admin123', 10);
@@ -146,41 +157,24 @@ export async function initDb() {
     await db.run('INSERT INTO users VALUES (?, ?, ?, ?)', ['U-002', 'teacher@university.edu', teacherHash, 'TEACHER']);
     await db.run('INSERT INTO users VALUES (?, ?, ?, ?)', ['U-003', 'student@university.edu', studentHash, 'STUDENT']);
 
-    // Seed Initial Students
-    const initialStudents = [
-      ['STU-2026-001', 'Alex Morgan', 'alex.morgan@university.edu', 'Computer Science', '3rd Year', 'Semester 6', 'Active', 3.85, 94, 'Paid', '+1 (555) 234-5678', '2003-05-14', '742 Evergreen Terrace', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'],
-      ['STU-2026-002', 'Benjamin Chen', 'benjamin.c@university.edu', 'Computer Science', '4th Year', 'Semester 8', 'Active', 3.92, 98, 'Paid', '+1 (555) 876-5432', '2002-11-20', '100 Pine Street', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'],
-      ['STU-2026-003', 'Sophia Rodriguez', 'sophia.r@university.edu', 'Electrical Eng', '2nd Year', 'Semester 4', 'Active', 3.45, 88, 'Pending', '+1 (555) 345-6789', '2004-02-10', '456 Oak Avenue', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'],
-      ['STU-2026-004', 'David Kim', 'david.k@university.edu', 'Mechanical Eng', '3rd Year', 'Semester 6', 'On Leave', 3.20, 76, 'Overdue', '+1 (555) 654-3210', '2003-09-08', '789 Maple Drive', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80'],
-      ['STU-2026-005', 'Emily Watson', 'emily.w@university.edu', 'Data Science', '1st Year', 'Semester 2', 'Active', 4.00, 99, 'Paid', '+1 (555) 432-1098', '2005-01-30', '321 Cedar Lane', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80']
-    ];
-
-    for (const stu of initialStudents) {
-      await db.run('INSERT INTO students VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [stu]);
-    }
-
     // Seed Courses
     const initialCourses = [
-      ['CS301', 'Database Management Systems', 'Computer Science', 4, 'Dr. Robert Vance', 42, 'Mon/Wed 10:00 AM - 11:30 AM'],
-      ['CS302', 'Web Application Engineering', 'Computer Science', 3, 'Prof. Sarah Jenkins', 58, 'Tue/Thu 02:00 PM - 03:30 PM'],
-      ['DS201', 'Machine Learning Fundamentals', 'Data Science', 4, 'Dr. Alan Turing Jr.', 35, 'Mon/Fri 01:00 PM - 03:00 PM'],
-      ['EE105', 'Digital Electronics & Circuits', 'Electrical Eng', 4, 'Prof. Michael Faraday', 29, 'Wed/Fri 09:00 AM - 10:30 AM']
+      ['AI-301', 'Artificial Intelligence & Neural Networks', 'Artificial Intelligence (AI Forge)', 4, 'Dr. Saju Raj & SASI KUMAR', 120, 'Mon/Wed 10:00 AM - 11:30 AM'],
+      ['AI-302', 'Deep Learning & Computer Vision', 'Artificial Intelligence (AI Forge)', 4, 'Dr. Kanimozhisekar & Mahendra Kumar', 95, 'Tue/Thu 02:00 PM - 03:30 PM'],
+      ['AI-201', 'Python Data Science & Machine Learning', 'Artificial Intelligence (AI Forge)', 3, 'Dr. F. Sheeja Mary & Dr. S. Rajiv', 136, 'Mon/Fri 01:00 PM - 03:00 PM'],
+      ['CS301', 'Database Management Systems', 'Computer Science', 4, 'Dr. Robert Vance', 42, 'Wed/Fri 09:00 AM - 10:30 AM']
     ];
 
     for (const c of initialCourses) {
       await db.run('INSERT INTO courses VALUES (?, ?, ?, ?, ?, ?, ?)', [c]);
     }
 
-    // Seed Fees
-    const initialFees = [
-      ['FEE-801', 'STU-2026-001', 'Alex Morgan', 4500, 4500, 'Paid', '2026-08-15'],
-      ['FEE-802', 'STU-2026-002', 'Benjamin Chen', 4500, 4500, 'Paid', '2026-08-15'],
-      ['FEE-803', 'STU-2026-003', 'Sophia Rodriguez', 4500, 2500, 'Pending', '2026-09-30'],
-      ['FEE-804', 'STU-2026-004', 'David Kim', 4500, 0, 'Overdue', '2026-07-01']
-    ];
-
-    for (const f of initialFees) {
-      await db.run('INSERT INTO fees VALUES (?, ?, ?, ?, ?, ?, ?)', [f]);
+    // Seed Fees for top students
+    for (let i = 0; i < Math.min(20, db.data.students.length); i++) {
+      const s = db.data.students[i];
+      await db.run('INSERT INTO fees VALUES (?, ?, ?, ?, ?, ?, ?)', [
+        `FEE-${801 + i}`, s.id, s.name, 4500, s.feeStatus === 'Paid' ? 4500 : 2500, s.feeStatus, '2026-08-15'
+      ]);
     }
   }
 
