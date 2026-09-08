@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
+import FacultyDashboard from './components/FacultyDashboard';
 import StudentsList from './components/StudentsList';
 import StudentModal from './components/StudentModal';
 import StudentProfileModal from './components/StudentProfileModal';
@@ -90,10 +91,9 @@ export default function App() {
     }
   };
 
-  // Student CRUD Operations with Live Backend API Sync
+  // Student CRUD Operations
   const handleSaveStudent = async (studentData) => {
     if (studentToEdit) {
-      // Update
       try {
         const res = await fetch(`${API_BASE_URL}/students/${studentData.id}`, {
           method: 'PUT',
@@ -105,7 +105,6 @@ export default function App() {
         setStudents(prev => prev.map(s => s.id === studentData.id ? studentData : s));
       }
     } else {
-      // Create
       try {
         const res = await fetch(`${API_BASE_URL}/students`, {
           method: 'POST',
@@ -121,7 +120,7 @@ export default function App() {
   };
 
   const handleDeleteStudent = async (id) => {
-    if (window.confirm("Are you sure you want to delete this student record from the database?")) {
+    if (window.confirm("Are you sure you want to delete this student record?")) {
       try {
         const res = await fetch(`${API_BASE_URL}/students/${id}`, { method: 'DELETE' });
         if (res.ok) fetchAllData();
@@ -225,23 +224,34 @@ export default function App() {
         {/* Backend Status Indicator Pill */}
         <div style={{ padding: '0.4rem 2rem', background: isBackendConnected ? 'var(--success-light)' : 'var(--warning-light)', borderBottom: '1px solid var(--border-color)', fontSize: '0.775rem', fontWeight: 600, color: isBackendConnected ? 'var(--success)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>
-            {isBackendConnected ? '🟢 Express REST API & SQLite Database Connected (http://localhost:5000)' : '🟡 Local Storage Sandbox Mode'}
+            {isBackendConnected ? '🟢 Express REST API & SQLite Database Connected (http://localhost:5000)' : '🟡 Local Sandbox Mode'}
           </span>
           <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-            Endpoints: /api/v1/students, /api/v1/courses, /api/v1/grades, /api/v1/fees
+            Active View Role: <strong style={{ color: 'var(--text-main)' }}>{currentRole}</strong>
           </span>
         </div>
 
         {/* Dynamic Content Views */}
         <main className="content-area">
           {activeTab === 'dashboard' && (
-            <Dashboard 
-              students={students}
-              courses={courses}
-              fees={fees}
-              setActiveTab={setActiveTab}
-              onAddStudent={() => { setStudentToEdit(null); setIsStudentModalOpen(true); }}
-            />
+            currentRole === 'Teacher' ? (
+              <FacultyDashboard 
+                students={students}
+                courses={courses}
+                grades={grades}
+                onSaveAttendance={handleSaveAttendance}
+                onAddGrade={handleAddGrade}
+                onViewStudent={handleViewStudentProfile}
+              />
+            ) : (
+              <Dashboard 
+                students={students}
+                courses={courses}
+                fees={fees}
+                setActiveTab={setActiveTab}
+                onAddStudent={() => { setStudentToEdit(null); setIsStudentModalOpen(true); }}
+              />
+            )
           )}
 
           {activeTab === 'students' && (
