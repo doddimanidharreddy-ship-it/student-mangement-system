@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CreditCard, DollarSign, CheckCircle2, AlertCircle, Clock, Plus, Receipt } from 'lucide-react';
+import { CreditCard, IndianRupee, CheckCircle2, AlertCircle, Clock, Plus, Receipt } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function FeeManager({ fees, onPayFee, students }) {
@@ -23,8 +23,8 @@ export default function FeeManager({ fees, onPayFee, students }) {
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Tuition & Fee Financial Management</h1>
-          <p className="page-subtitle">Track student fee ledger accounts, collect payments, and issue receipts.</p>
+          <h1 className="page-title">Tuition & Fee Financial Management (₹ INR)</h1>
+          <p className="page-subtitle">Track student fee ledger accounts, collect INR payments, and issue receipts.</p>
         </div>
       </div>
 
@@ -49,9 +49,9 @@ export default function FeeManager({ fees, onPayFee, students }) {
             <tr>
               <th>Fee Ref ID</th>
               <th>Student</th>
-              <th>Total Tuition</th>
-              <th>Paid Amount</th>
-              <th>Balance Dues</th>
+              <th>Total Tuition (₹)</th>
+              <th>Paid Amount (₹)</th>
+              <th>Balance Dues (₹)</th>
               <th>Due Date</th>
               <th>Status</th>
               <th style={{ textAlign: 'right' }}>Action</th>
@@ -67,10 +67,10 @@ export default function FeeManager({ fees, onPayFee, students }) {
                     <div style={{ fontWeight: 600 }}>{fee.studentName}</div>
                     <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{fee.studentId}</div>
                   </td>
-                  <td style={{ fontWeight: 600 }}>${fee.totalAmount.toLocaleString()}</td>
-                  <td style={{ color: 'var(--success)', fontWeight: 700 }}>${fee.paidAmount.toLocaleString()}</td>
+                  <td style={{ fontWeight: 600 }}>₹{fee.totalAmount.toLocaleString('en-IN')}</td>
+                  <td style={{ color: 'var(--success)', fontWeight: 700 }}>₹{fee.paidAmount.toLocaleString('en-IN')}</td>
                   <td style={{ color: balance > 0 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: 700 }}>
-                    ${balance.toLocaleString()}
+                    ₹{balance.toLocaleString('en-IN')}
                   </td>
                   <td>{fee.dueDate}</td>
                   <td>
@@ -107,7 +107,7 @@ export default function FeeManager({ fees, onPayFee, students }) {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3 style={{ fontSize: '1.2rem' }}>Record Tuition Payment</h3>
+              <h3 style={{ fontSize: '1.2rem' }}>Record Tuition Payment (₹ INR)</h3>
             </div>
             <form onSubmit={handlePaymentSubmit}>
               <div className="modal-body">
@@ -115,13 +115,13 @@ export default function FeeManager({ fees, onPayFee, students }) {
                   <div style={{ fontWeight: 700, fontSize: '1rem' }}>{selectedFee.studentName}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Student ID: {selectedFee.studentId}</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.75rem', fontSize: '0.85rem' }}>
-                    <span>Total Fee: <strong>${selectedFee.totalAmount}</strong></span>
-                    <span>Remaining Balance: <strong style={{ color: 'var(--danger)' }}>${selectedFee.totalAmount - selectedFee.paidAmount}</strong></span>
+                    <span>Total Fee: <strong>₹{selectedFee.totalAmount.toLocaleString('en-IN')}</strong></span>
+                    <span>Remaining Balance: <strong style={{ color: 'var(--danger)' }}>₹{(selectedFee.totalAmount - selectedFee.paidAmount).toLocaleString('en-IN')}</strong></span>
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Payment Amount ($)</label>
+                  <label className="form-label">Payment Amount (₹)</label>
                   <input 
                     type="number" 
                     min="1"

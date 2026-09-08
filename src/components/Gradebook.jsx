@@ -8,14 +8,11 @@ export default function Gradebook({ students, courses, grades, onAddGrade, onVie
   const [score, setScore] = useState(88);
 
   const calculateGradeDetails = (numScore) => {
-    if (numScore >= 95) return { grade: 'A+', gpa: 4.0 };
-    if (numScore >= 90) return { grade: 'A', gpa: 4.0 };
-    if (numScore >= 85) return { grade: 'A-', gpa: 3.7 };
-    if (numScore >= 80) return { grade: 'B+', gpa: 3.3 };
-    if (numScore >= 75) return { grade: 'B', gpa: 3.0 };
-    if (numScore >= 70) return { grade: 'B-', gpa: 2.7 };
-    if (numScore >= 60) return { grade: 'C+', gpa: 2.3 };
-    if (numScore >= 50) return { grade: 'C', gpa: 2.0 };
+    if (numScore >= 90) return { grade: 'O', gpa: 10.0 };
+    if (numScore >= 80) return { grade: 'A+', gpa: 9.0 };
+    if (numScore >= 70) return { grade: 'A', gpa: 8.0 };
+    if (numScore >= 60) return { grade: 'B+', gpa: 7.0 };
+    if (numScore >= 50) return { grade: 'B', gpa: 6.0 };
     return { grade: 'F', gpa: 0.0 };
   };
 
@@ -40,8 +37,8 @@ export default function Gradebook({ students, courses, grades, onAddGrade, onVie
     <div>
       <div className="page-header">
         <div>
-          <h1 className="page-title">Gradebook & GPA Management</h1>
-          <p className="page-subtitle">Record subject scores, auto-calculate letter grades, and view official transcripts.</p>
+          <h1 className="page-title">Gradebook & CGPA Management (10.0 Scale)</h1>
+          <p className="page-subtitle">Record subject scores, auto-calculate letter grades (O, A+, A, B+), and 10-point CGPA scores.</p>
         </div>
       </div>
 
@@ -99,9 +96,9 @@ export default function Gradebook({ students, courses, grades, onAddGrade, onVie
                 </div>
               </div>
               <div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>GPA POINTS:</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>CGPA POINTS:</span>
                 <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--success)' }}>
-                  {calculateGradeDetails(score).gpa.toFixed(1)} / 4.0
+                  {calculateGradeDetails(score).gpa.toFixed(1)} / 10.0
                 </div>
               </div>
             </div>

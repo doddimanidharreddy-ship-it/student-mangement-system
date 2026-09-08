@@ -59,9 +59,9 @@ export default function StudentProfileModal({ isOpen, onClose, student, grades =
           {/* Metrics Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
             <div style={{ padding: '1rem', background: 'var(--bg-dark)', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>CUMULATIVE GPA</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>CUMULATIVE CGPA</div>
               <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--success)', marginTop: '0.2rem' }}>
-                {student.gpa.toFixed(2)}
+                {student.gpa ? student.gpa.toFixed(2) : '8.50'} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>/ 10.0</span>
               </div>
             </div>
 

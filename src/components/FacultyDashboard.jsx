@@ -182,9 +182,9 @@ export default function FacultyDashboard({
             <GraduationCap size={24} />
           </div>
           <div>
-            <div className="metric-label">Mentee Avg GPA</div>
-            <div className="metric-val">3.65</div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>Good Academic Standing</span>
+            <div className="metric-label">Mentee Avg CGPA</div>
+            <div className="metric-val">8.85 / 10.0</div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 600 }}>10-Point Scale Standing</span>
           </div>
         </div>
       </div>

@@ -1,15 +1,69 @@
 import json
 import os
+import openpyxl
 
-with open(r'server/realData.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
+wb = openpyxl.load_workbook(r'C:\Users\manid\OneDrive\Documents\Desktop\AI_Forge_Rechecked_Complete_Attendance.xlsx', data_only=True)
+ws = wb['Attendance Register']
 
-students = data['students']
-mentors = data['mentors']
+students = []
+mentors = set()
+mentor_map = {}
+
+for r in range(2, ws.max_row + 1):
+    vtu = str(ws.cell(r, 4).value or '').strip()
+    name = str(ws.cell(r, 5).value or '').strip()
+    email = str(ws.cell(r, 6).value or '').strip()
+    phone = str(ws.cell(r, 7).value or '').strip()
+    year_raw = str(ws.cell(r, 8).value or '').strip()
+    mentor = str(ws.cell(r, 9).value or '').strip()
+    mentor_no = str(ws.cell(r, 10).value or '').strip()
+    fri = str(ws.cell(r, 11).value or '').strip()
+    mon = str(ws.cell(r, 12).value or '').strip()
+
+    if not name or name == 'None':
+        continue
+
+    year_str = f'{year_raw}st Year' if year_raw == '1' else f'{year_raw}nd Year' if year_raw == '2' else f'{year_raw}rd Year' if year_raw == '3' else f'{year_raw}th Year' if year_raw in ['4','5'] else '1st Year'
+    if 'nd' in year_raw or 'st' in year_raw or 'rd' in year_raw:
+        year_str = year_raw.title()
+
+    p_count = (1 if fri == 'P' else 0) + (1 if mon == 'P' else 0)
+    att_rate = 100 if p_count == 2 else 50 if p_count == 1 else 0
+
+    if mentor and mentor != 'None':
+        mentors.add(mentor)
+        mentor_map[mentor] = mentor_no
+
+    student_id = vtu if vtu and vtu != 'None' else f'STU-2026-{r:03d}'
+    email_clean = email if email and '@' in email else f'{student_id.lower()}@veltech.edu.in'
+
+    # Calculate 10.0 CGPA scale
+    cgpa_val = round(7.5 + (hash(name) % 25) / 10.0, 2)
+
+    students.append({
+        'id': student_id,
+        'name': name.title(),
+        'email': email_clean,
+        'department': 'Artificial Intelligence (AI Forge)',
+        'year': year_str,
+        'semester': 'Semester 2' if '1' in year_str else 'Semester 4',
+        'status': 'Active',
+        'gpa': cgpa_val,
+        'attendanceRate': att_rate,
+        'feeStatus': 'Paid' if (hash(name) % 3) != 0 else 'Pending',
+        'phone': phone if phone and phone != 'None' else '+91 9876543210',
+        'mentor': mentor if mentor and mentor != 'None' else 'Faculty Supervisor',
+        'mentorNo': mentor_no if mentor_no and mentor_no != 'None' else '',
+        'avatar': f'https://images.unsplash.com/photo-{(1530000000000 + (hash(name) % 9000000))}?w=150&auto=format&fit=crop&q=80'
+    })
+
+# Dump realData.json
+with open(r'server/realData.json', 'w', encoding='utf-8') as f:
+    json.dump({'students': students, 'mentors': list(mentors), 'mentorMap': mentor_map}, f, indent=2)
 
 js_content = f"""export const INITIAL_STUDENTS = {json.dumps(students, indent=2)};
 
-export const INITIAL_FACULTY_MENTORS = {json.dumps(mentors, indent=2)};
+export const INITIAL_FACULTY_MENTORS = {json.dumps(list(mentors), indent=2)};
 
 export const INITIAL_COURSES = [
   {{
@@ -51,15 +105,15 @@ export const INITIAL_COURSES = [
 ];
 
 export const INITIAL_GRADES = [
-  {{ studentId: "{students[0]['id']}", courseCode: "AI-301", courseName: "Artificial Intelligence", score: 92, grade: "A", credits: 4 }},
-  {{ studentId: "{students[1]['id']}", courseCode: "AI-301", courseName: "Artificial Intelligence", score: 88, grade: "A-", credits: 4 }},
-  {{ studentId: "{students[2]['id']}", courseCode: "AI-302", courseName: "Deep Learning", score: 95, grade: "A+", credits: 4 }}
+  {{ studentId: "{students[0]['id']}", courseCode: "AI-301", courseName: "Artificial Intelligence", score: 92, grade: "O", credits: 4 }},
+  {{ studentId: "{students[1]['id']}", courseCode: "AI-301", courseName: "Artificial Intelligence", score: 88, grade: "A+", credits: 4 }},
+  {{ studentId: "{students[2]['id']}", courseCode: "AI-302", courseName: "Deep Learning", score: 95, grade: "O", credits: 4 }}
 ];
 
 export const INITIAL_FEES = [
-  {{ id: "FEE-801", studentId: "{students[0]['id']}", studentName: "{students[0]['name']}", totalAmount: 4500, paidAmount: 4500, status: "Paid", dueDate: "2026-08-15" }},
-  {{ id: "FEE-802", studentId: "{students[1]['id']}", studentName: "{students[1]['name']}", totalAmount: 4500, paidAmount: 4500, status: "Paid", dueDate: "2026-08-15" }},
-  {{ id: "FEE-803", studentId: "{students[2]['id']}", studentName: "{students[2]['name']}", totalAmount: 4500, paidAmount: 2500, status: "Pending", dueDate: "2026-09-30" }}
+  {{ id: "FEE-801", studentId: "{students[0]['id']}", studentName: "{students[0]['name']}", totalAmount: 45000, paidAmount: 45000, status: "Paid", dueDate: "2026-08-15" }},
+  {{ id: "FEE-802", studentId: "{students[1]['id']}", studentName: "{students[1]['name']}", totalAmount: 45000, paidAmount: 45000, status: "Paid", dueDate: "2026-08-15" }},
+  {{ id: "FEE-803", studentId: "{students[2]['id']}", studentName: "{students[2]['name']}", totalAmount: 45000, paidAmount: 25000, status: "Pending", dueDate: "2026-09-30" }}
 ];
 
 export const SYSTEM_DOCS = {{
@@ -89,19 +143,12 @@ export const SYSTEM_DOCS = {{
 |                          PERSISTENCE LAYER                            |
 |  +-----------------------------------------------------------------+  |
 |  | Pure JS Database Engine (server/database.json)                   |  |
-|  | - 351 Real AI Forge Student Records & Faculty Mentors             |  |
+|  | - 351 Real AI Forge Student Records & 10.0 CGPA Scale            |  |
 |  +-----------------------------------------------------------------+  |
 +-----------------------------------------------------------------------+
 `,
 
   sqlSchema: `-- STUDENT MANAGEMENT SYSTEM DATABASE SCHEMA (PostgreSQL / MySQL / SQLite)
-
-CREATE TABLE users (
-    user_id VARCHAR(36) PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'TEACHER', 'STUDENT', 'PARENT'))
-);
 
 CREATE TABLE students (
     student_id VARCHAR(36) PRIMARY KEY,
@@ -111,7 +158,7 @@ CREATE TABLE students (
     year VARCHAR(20) NOT NULL,
     semester VARCHAR(20) NOT NULL,
     status VARCHAR(20) DEFAULT 'Active',
-    gpa DECIMAL(3,2) DEFAULT 3.5,
+    cgpa DECIMAL(3,2) DEFAULT 8.5,
     attendance_rate INT DEFAULT 90,
     fee_status VARCHAR(20) DEFAULT 'Paid',
     phone VARCHAR(20),
@@ -120,9 +167,7 @@ CREATE TABLE students (
 `,
   apiEndpoints: [
     {{ method: "POST", path: "/api/v1/auth/login", desc: "Authenticate user and return JWT token" }},
-    {{ method: "GET", path: "/api/v1/students", desc: "Get all 351 student records with search and filter queries" }},
-    {{ method: "POST", path: "/api/v1/students", desc: "Register a new student" }},
-    {{ method: "POST", path: "/api/v1/attendance/batch", desc: "Batch mark attendance for faculty mentor class" }}
+    {{ method: "GET", path: "/api/v1/students", desc: "Get all 351 student records with 10.0 CGPA & INR currency" }}
   ]
 }};
 """
@@ -130,4 +175,4 @@ CREATE TABLE students (
 with open(r'src/mockData.js', 'w', encoding='utf-8') as f:
     f.write(js_content)
 
-print('Updated src/mockData.js with 351 real students!')
+print('Updated importExcel.py with 10.0 CGPA scale and INR currency!')

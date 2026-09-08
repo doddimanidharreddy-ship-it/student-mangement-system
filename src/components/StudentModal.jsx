@@ -176,12 +176,12 @@ export default function StudentModal({ isOpen, onClose, onSave, studentToEdit })
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
-                <label className="form-label">GPA Score (0.0 - 4.0)</label>
+                <label className="form-label">CGPA Score (0.0 - 10.0)</label>
                 <input 
                   type="number" 
                   step="0.01"
                   min="0"
-                  max="4"
+                  max="10"
                   value={formData.gpa} 
                   onChange={(e) => setFormData({ ...formData, gpa: parseFloat(e.target.value) || 0 })}
                   className="form-input"
