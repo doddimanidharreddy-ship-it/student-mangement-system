@@ -6,6 +6,7 @@ import FacultyDashboard from './components/FacultyDashboard';
 import StudentsList from './components/StudentsList';
 import StudentModal from './components/StudentModal';
 import StudentProfileModal from './components/StudentProfileModal';
+import ExcelUploadModal from './components/ExcelUploadModal';
 import CoursesList from './components/CoursesList';
 import AttendanceTracker from './components/AttendanceTracker';
 import Gradebook from './components/Gradebook';
@@ -41,6 +42,7 @@ export default function App() {
   const [studentToEdit, setStudentToEdit] = useState(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileStudent, setProfileStudent] = useState(null);
+  const [isExcelModalOpen, setIsExcelModalOpen] = useState(false);
 
   // Initial Fetch from Backend API
   const fetchAllData = async () => {
@@ -67,7 +69,7 @@ export default function App() {
         throw new Error('Backend returned error status');
       }
     } catch (error) {
-      console.warn('Backend API connection offline, falling back to local dataset:', error);
+      console.warn('Backend API connection offline, falling back to dataset:', error);
       setIsBackendConnected(false);
       setStudents(INITIAL_STUDENTS);
       setCourses(INITIAL_COURSES);
@@ -117,6 +119,29 @@ export default function App() {
       }
     }
     setStudentToEdit(null);
+  };
+
+  // Import Excel File Callback
+  const handleImportExcelData = async (importedStudents, replaceExisting) => {
+    if (replaceExisting) {
+      setStudents(importedStudents);
+    } else {
+      setStudents(prev => [...importedStudents, ...prev]);
+    }
+
+    // Push each to backend API if available
+    if (isBackendConnected) {
+      for (const s of importedStudents) {
+        try {
+          await fetch(`${API_BASE_URL}/students`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(s)
+          });
+        } catch (e) {}
+      }
+      fetchAllData();
+    }
   };
 
   const handleDeleteStudent = async (id) => {
@@ -219,15 +244,16 @@ export default function App() {
           currentRole={currentRole}
           setCurrentRole={setCurrentRole}
           onAddStudent={() => { setStudentToEdit(null); setIsStudentModalOpen(true); }}
+          onOpenExcelModal={() => setIsExcelModalOpen(true)}
         />
 
-        {/* Backend Status Indicator Pill */}
+        {/* Status Indicator Bar */}
         <div style={{ padding: '0.4rem 2rem', background: isBackendConnected ? 'var(--success-light)' : 'var(--warning-light)', borderBottom: '1px solid var(--border-color)', fontSize: '0.775rem', fontWeight: 600, color: isBackendConnected ? 'var(--success)' : 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>
-            {isBackendConnected ? '🟢 Express REST API & SQLite Database Connected (http://localhost:5000)' : '🟡 Local Sandbox Mode'}
+            {isBackendConnected ? '🟢 Express REST API & Database Connected' : '🟡 Offline Mode'}
           </span>
           <span style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>
-            Active View Role: <strong style={{ color: 'var(--text-main)' }}>{currentRole}</strong>
+            Active Roster: <strong style={{ color: 'var(--text-main)' }}>{students.length} Real Students</strong>
           </span>
         </div>
 
@@ -262,6 +288,7 @@ export default function App() {
               onEditStudent={handleEditStudent}
               onDeleteStudent={handleDeleteStudent}
               onViewStudent={handleViewStudentProfile}
+              onOpenExcelModal={() => setIsExcelModalOpen(true)}
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
             />
@@ -321,6 +348,13 @@ export default function App() {
         onClose={() => setIsProfileModalOpen(false)}
         student={profileStudent}
         grades={grades}
+      />
+
+      {/* Excel Sheet Uploader Modal */}
+      <ExcelUploadModal 
+        isOpen={isExcelModalOpen}
+        onClose={() => setIsExcelModalOpen(false)}
+        onImportData={handleImportExcelData}
       />
     </div>
   );

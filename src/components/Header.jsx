@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Moon, Sun, UserCheck, Plus, Bell } from 'lucide-react';
+import { Search, Moon, Sun, UserCheck, Plus, FileSpreadsheet } from 'lucide-react';
 
 export default function Header({ 
   searchQuery, 
@@ -8,7 +8,8 @@ export default function Header({
   toggleTheme, 
   currentRole, 
   setCurrentRole, 
-  onAddStudent 
+  onAddStudent,
+  onOpenExcelModal 
 }) {
   return (
     <header className="header">
@@ -20,7 +21,7 @@ export default function Header({
         />
         <input
           type="text"
-          placeholder="Search students, courses, or IDs..."
+          placeholder="Search 350+ students, mentors, or IDs..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="form-input"
@@ -29,7 +30,18 @@ export default function Header({
       </div>
 
       {/* Controls Right */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+        {/* Excel Upload Button */}
+        <button 
+          onClick={onOpenExcelModal} 
+          className="btn btn-primary" 
+          style={{ height: '40px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}
+          title="Upload an Excel (.xlsx / .csv) sheet"
+        >
+          <FileSpreadsheet size={18} />
+          <span>Upload Excel Sheet</span>
+        </button>
+
         {/* Role Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--bg-dark)', padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
           <UserCheck size={16} color="var(--primary)" />
@@ -55,9 +67,9 @@ export default function Header({
           {theme === 'dark' ? <Sun size={18} color="#f59e0b" /> : <Moon size={18} color="#6366f1" />}
         </button>
 
-        {/* Quick Add Student Button (Admin only) */}
+        {/* Quick Add Student Button */}
         {currentRole === 'Admin' && (
-          <button onClick={onAddStudent} className="btn btn-primary" style={{ height: '40px', borderRadius: '8px' }}>
+          <button onClick={onAddStudent} className="btn btn-secondary" style={{ height: '40px', borderRadius: '8px' }}>
             <Plus size={18} />
             <span>New Student</span>
           </button>

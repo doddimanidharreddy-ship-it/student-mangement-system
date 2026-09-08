@@ -7,10 +7,7 @@ import {
   Eye, 
   Edit3, 
   Trash2, 
-  MoreVertical,
-  CheckCircle,
-  XCircle,
-  Clock
+  FileSpreadsheet
 } from 'lucide-react';
 
 export default function StudentsList({ 
@@ -20,6 +17,7 @@ export default function StudentsList({
   onEditStudent, 
   onDeleteStudent, 
   onViewStudent,
+  onOpenExcelModal,
   searchQuery,
   setSearchQuery
 }) {
@@ -32,7 +30,8 @@ export default function StudentsList({
     const matchesSearch = 
       stu.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       stu.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stu.email.toLowerCase().includes(searchQuery.toLowerCase());
+      stu.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (stu.mentor && stu.mentor.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesDept = selectedDept === 'All' || stu.department === selectedDept;
     const matchesYear = selectedYear === 'All' || stu.year === selectedYear;
@@ -43,7 +42,7 @@ export default function StudentsList({
 
   // CSV Export feature
   const exportToCSV = () => {
-    const headers = ["Student ID", "Name", "Email", "Department", "Year", "GPA", "Attendance %", "Fee Status", "Phone"];
+    const headers = ["Student ID", "Name", "Email", "Department", "Year", "GPA", "Attendance %", "Mentor", "Fee Status", "Phone"];
     const rows = filteredStudents.map(s => [
       s.id,
       `"${s.name}"`,
@@ -52,6 +51,7 @@ export default function StudentsList({
       s.year,
       s.gpa,
       s.attendanceRate,
+      `"${s.mentor || 'Faculty Supervisor'}"`,
       s.feeStatus,
       `"${s.phone}"`
     ]);
@@ -71,16 +71,20 @@ export default function StudentsList({
       {/* Header & Controls */}
       <div className="page-header">
         <div>
-          <h1 className="page-title">Student Directory</h1>
-          <p className="page-subtitle">Manage student enrollment profiles, academic status, and records.</p>
+          <h1 className="page-title">Student Directory ({students.length} Total Enrolled)</h1>
+          <p className="page-subtitle">Real student records, roll numbers, faculty mentor assignments, and attendance logs.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn btn-primary" onClick={onOpenExcelModal} style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}>
+            <FileSpreadsheet size={16} />
+            Upload Excel Sheet
+          </button>
           <button className="btn btn-secondary" onClick={exportToCSV}>
             <Download size={16} />
             Export CSV
           </button>
           {currentRole === 'Admin' && (
-            <button className="btn btn-primary" onClick={onAddStudent}>
+            <button className="btn btn-secondary" onClick={onAddStudent}>
               <UserPlus size={16} />
               Add Student
             </button>
@@ -99,9 +103,10 @@ export default function StudentsList({
               value={selectedDept} 
               onChange={(e) => setSelectedDept(e.target.value)}
               className="form-select"
-              style={{ width: '180px', padding: '0.4rem 0.6rem' }}
+              style={{ width: '220px', padding: '0.4rem 0.6rem' }}
             >
               <option value="All">All Departments</option>
+              <option value="Artificial Intelligence (AI Forge)">Artificial Intelligence (AI Forge)</option>
               <option value="Computer Science">Computer Science</option>
               <option value="Data Science">Data Science</option>
               <option value="Electrical Eng">Electrical Eng</option>
@@ -152,11 +157,11 @@ export default function StudentsList({
         <table className="custom-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th>VTU Roll ID</th>
               <th>Student Name</th>
               <th>Department</th>
-              <th>Year / Sem</th>
-              <th>GPA</th>
+              <th>Year</th>
+              <th>Faculty Mentor</th>
               <th>Attendance</th>
               <th>Fee Dues</th>
               <th>Status</th>
@@ -167,7 +172,7 @@ export default function StudentsList({
             {filteredStudents.length === 0 ? (
               <tr>
                 <td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                  No student records match the selected search/filter criteria.
+                  No student records match the selected search/filter criteria. Click "Upload Excel Sheet" to import new records.
                 </td>
               </tr>
             ) : (
@@ -187,22 +192,18 @@ export default function StudentsList({
                       </div>
                     </div>
                   </td>
-                  <td>{stu.department}</td>
+                  <td style={{ fontSize: '0.85rem' }}>{stu.department}</td>
+                  <td>{stu.year}</td>
                   <td>
-                    <div>{stu.year}</div>
-                    <div style={{ fontSize: '0.725rem', color: 'var(--text-muted)' }}>{stu.semester}</div>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: 700, color: stu.gpa >= 3.5 ? 'var(--success)' : 'var(--text-main)' }}>
-                      {stu.gpa.toFixed(2)}
+                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+                      {stu.mentor || 'Faculty Supervisor'}
                     </span>
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ fontWeight: 600 }}>{stu.attendanceRate}%</span>
-                      <div style={{ width: '50px', height: '6px', background: 'var(--bg-dark)', borderRadius: '9999px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${stu.attendanceRate}%`, background: stu.attendanceRate >= 85 ? 'var(--success)' : 'var(--warning)' }} />
-                      </div>
+                      <span style={{ fontWeight: 700, color: stu.attendanceRate >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+                        {stu.attendanceRate}%
+                      </span>
                     </div>
                   </td>
                   <td>
