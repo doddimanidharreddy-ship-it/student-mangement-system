@@ -18,7 +18,9 @@ import {
   INITIAL_FEES 
 } from './mockData';
 
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = window.location.origin.includes('localhost:3000') 
+  ? 'http://localhost:5000/api/v1' 
+  : '/api/v1';
 
 export default function App() {
   const [students, setStudents] = useState([]);

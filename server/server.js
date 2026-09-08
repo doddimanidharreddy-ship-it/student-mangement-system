@@ -2,14 +2,22 @@ import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { initDb } from './db.js';
 import { verifyToken, requireRole, JWT_SECRET } from './middleware/auth.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static React frontend files from dist folder
+app.use(express.static(path.join(__dirname, '../dist')));
 
 let db;
 
@@ -236,4 +244,9 @@ app.post('/api/v1/fees/pay', async (req, res) => {
 // System Health Endpoint
 app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'UP', service: 'Student Management System API', version: '2.5.0', timestamp: new Date().toISOString() });
+});
+
+// Fallback to React Frontend for SPA routing
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
