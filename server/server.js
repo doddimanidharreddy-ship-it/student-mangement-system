@@ -246,7 +246,7 @@ app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'UP', service: 'Student Management System API', version: '2.5.0', timestamp: new Date().toISOString() });
 });
 
-// Fallback to React Frontend for SPA routing
-app.get('*', (req, res) => {
+// Fallback to React Frontend for SPA routing (Express 5 compatible)
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
